@@ -44,3 +44,7 @@ export const generateReplyStream = async (
     });
     return result;
 };
+
+export const generateMetaData = async () => {
+    
+} 

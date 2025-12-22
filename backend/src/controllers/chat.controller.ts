@@ -2,15 +2,21 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma';
 import { AppError } from '../utils/AppError';
 import { generateReplyStream } from '../services/agent.service';
-import { v4 as uuidv4 } from 'uuid';
+
 
 const chatController = {
      getChatHistory: async (req: Request, res: Response, next: NextFunction) => {
           try {
                const { id } = req.params;
 
+               const sessionId = req.headers['x-session-id'];
+
+               if (!sessionId || typeof sessionId !== 'string') {
+                    return next(new AppError('Session ID is required', 400));
+               }
+
                const conversation = await prisma.conversation.findFirst({
-                    where: { id },
+                    where: { id, sessionId },
                     include: {
                          messages: {
                               orderBy: { createdAt: 'asc' },
@@ -19,8 +25,6 @@ const chatController = {
                });
 
                if (!conversation) {
-                    // Return empty history if session doesn't exist yet, or 404.
-                    // Returning empty list is handled gracefully by frontend usually.
                     return res.status(200).json({ messages: [] });
                }
 
@@ -31,14 +35,20 @@ const chatController = {
      },
 
      sendMessage: async (req: Request, res: Response, next: NextFunction) => {
-          let { message, conversationId, sessionId } = req.body;
+          let { message, conversationId } = req.body;
+
+          const sessionId = req.headers['x-session-id'];
 
           if (!message) {
                return next(new AppError('Message is required', 400));
           }
 
+          if (!sessionId || typeof sessionId !== 'string') {
+               return next(new AppError('Session ID is required', 400));
+          }
+
           try {
-               // 1. Find or Create Conversation
+
                let conversation;
                if (conversationId) {
                     conversation = await prisma.conversation.findUnique({
@@ -57,7 +67,7 @@ const chatController = {
                     });
                }
 
-               // 2. Save User Message
+
                await prisma.message.create({
                     data: {
                          conversationId: conversation.id,
@@ -66,22 +76,22 @@ const chatController = {
                     },
                });
 
-               // 3. Prepare for Streaming
+
+
                res.setHeader('Content-Type', 'text/event-stream');
                res.setHeader('Cache-Control', 'no-cache');
                res.setHeader('Connection', 'keep-alive');
                if (sessionId) {
-                    res.setHeader('X-Session-Id', sessionId); // Send back sessionId in header or first chunk if needed
+                    res.setHeader('X-Session-Id', sessionId);
                }
+               res.setHeader('X-Conversation-Id', conversation.id);
 
-               // 4. Get Chat History for Context
                const previousMessages = await prisma.message.findMany({
                     where: { conversationId: conversation.id },
                     orderBy: { createdAt: 'asc' },
                     take: 20, // Limit context
                });
 
-               // 5. Call AI Service
                try {
                     const stream = await generateReplyStream(previousMessages, message);
                     let fullAiResponse = '';
@@ -90,14 +100,17 @@ const chatController = {
                          const chunkText = chunk.text;
                          if (chunkText) {
                               fullAiResponse += chunkText;
-                              // Send chunk to client
-                              // Format: data: <json_string>\n\n
-                              const data = JSON.stringify({ text: chunkText, sessionId });
+
+                              const data = JSON.stringify({
+                                   text: chunkText,
+                                   sessionId,
+                                   conversationId: conversation.id
+                              });
                               res.write(`data: ${data}\n\n`);
                          }
                     }
 
-                    // 6. Save AI Message
+
                     await prisma.message.create({
                          data: {
                               conversationId: conversation.id,
@@ -106,20 +119,20 @@ const chatController = {
                          },
                     });
 
-                    // End stream
+
                     res.write('event: end\n');
-                    res.write(`data: ${JSON.stringify({ sessionId })}\n\n`);
+                    res.write(`data: ${JSON.stringify({ sessionId, conversationId: conversation.id })}\n\n`);
                     res.end();
 
                } catch (aiError) {
                     console.error('AI Error:', aiError);
-                    // If headers already sent, we can't send error status. Send error event.
+
                     res.write(`event: error\ndata: ${JSON.stringify({ message: 'Error generating response' })}\n\n`);
                     res.end();
                }
 
           } catch (error) {
-               // If headers not sent, normal error handling works
+
                if (!res.headersSent) {
                     next(error);
                } else {
@@ -130,8 +143,15 @@ const chatController = {
      },
 
      listAllChats: async (req: Request, res: Response, next: NextFunction) => {
+          const sessionId = req.headers['x-session-id'];
+
           try {
+               if (!sessionId || typeof sessionId !== 'string') {
+                    return next(new AppError('Session ID is required', 400));
+               }
+
                const conversations = await prisma.conversation.findMany({
+                    where: { sessionId },
                     include: {
                          _count: {
                               select: { messages: true }
