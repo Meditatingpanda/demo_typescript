@@ -13,14 +13,15 @@ datasource db {
 model Conversation {
   id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
+  sessionId String
   messages  Message[]
 }
 
 model Message {
   id             String       @id @default(uuid())
   conversationId String
-  role           String // "user" | "model"
-  content        String
+  sender         String // "user" | "ai"
+  text           String
   createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 }

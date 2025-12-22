@@ -1,11 +1,10 @@
 import express from "express";
 import chatController from "../controllers/chat.controller";
+
 const router = express.Router();
 
+router.post("/chat/message", chatController.sendMessage);
 router.get("/chat/:id", chatController.getChatHistory);
-
-router.post("/chat", chatController.createChat);
-
-router.get("/chat/list", chatController.listAllChats);
+router.get("/chat", chatController.listAllChats);
 
 export default router;

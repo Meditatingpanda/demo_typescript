@@ -70,7 +70,8 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const ConversationScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  sessionId: 'sessionId'
 } as const
 
 export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
@@ -79,8 +80,8 @@ export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[k
 export const MessageScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
-  role: 'role',
-  content: 'content',
+  sender: 'sender',
+  text: 'text',
   createdAt: 'createdAt'
 } as const
 
