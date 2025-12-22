@@ -19,7 +19,11 @@ export const ChatLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (conversationId && conversationId !== activeConversationId) {
+    if (
+      conversationId &&
+      conversationId !== activeConversationId &&
+      conversationId !== undefined
+    ) {
       loadConversation(conversationId);
     }
   }, [conversationId, loadConversation, activeConversationId]);

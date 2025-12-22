@@ -1,15 +1,7 @@
 import { MessageSquarePlus, MessageSquare } from "lucide-react";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
-
-interface Conversation {
-  id: string;
-  sessionId: string;
-  createdAt: string;
-  _count?: {
-    messages: number;
-  };
-}
+import type { Conversation } from "../hooks/useChat";
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -94,19 +86,18 @@ export const Sidebar = ({
                   />
                   <div className="flex-1 truncate">
                     <span className="font-medium block">
+                      {conv?.firstMessage?.text.slice(0, 20)} ....
+                    </span>
+                    <span className="text-xs text-zinc-500">
                       {new Date(conv.createdAt).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
                       })}
-                    </span>
-                    <span className="text-xs text-zinc-500">
+                      {"-"}
                       {new Date(conv.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                      {conv._count?.messages
-                        ? ` • ${conv._count.messages} msgs`
-                        : ""}
                     </span>
                   </div>
                 </button>

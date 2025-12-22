@@ -3,20 +3,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 
-interface Message {
+export interface Message {
     id?: string;
     sender: 'user' | 'ai';
     text: string;
     createdAt?: string;
 }
 
-interface Conversation {
+export interface Conversation {
     id: string;
     sessionId: string;
     createdAt: string;
-    _count?: {
-        messages: number;
-    };
+    firstMessage: Message;
 }
 
 const apiBase = 'http://localhost:3000/api';
@@ -64,6 +62,8 @@ export const useChat = () => {
 
     // Load specific conversation
     const loadConversation = useCallback(async (id: string) => {
+
+        console.log('Loading conversation', id);
         // Avoid re-fetching if we are already on this conversation (e.g. just created it)
         // But we should fetch if we navigated here from sidebar
         if (id === activeConversationId && messages.length > 0) return;
