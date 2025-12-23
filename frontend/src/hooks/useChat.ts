@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 
+
 export interface Message {
     id?: string;
     sender: 'user' | 'ai';
@@ -17,7 +18,7 @@ export interface Conversation {
     firstMessage: Message;
 }
 
-const apiBase = 'http://localhost:3000/api';
+const apiBase = import.meta.env.VITE_API_BASE_URL;
 
 export const useChat = () => {
     const [sessionId, setSessionId] = useState<string>('');
