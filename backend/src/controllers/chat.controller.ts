@@ -121,12 +121,35 @@ const chatController = {
                          })}\n\n`
                     );
                     res.end();
-               } catch (aiError) {
-                    console.error("AI Error:", aiError);
+               } catch (aiError: any) {
+                    console.error("AI Error:", aiError, typeof aiError);
+
+                    let errorMessage = aiError?.message || "Something went wrong";
+
+                    const tryExtractMessage = (msg: any): string | null => {
+                         try {
+                              if (typeof msg === 'string' && msg.trim().startsWith('{')) {
+                                   const parsed = JSON.parse(msg);
+                                   if (parsed.error && parsed.error.message) {
+                                        return tryExtractMessage(parsed.error.message) || parsed.error.message;
+                                   } else if (parsed.message) {
+                                        return tryExtractMessage(parsed.message) || parsed.message;
+                                   }
+                              }
+                         } catch (e) {
+                              // Ignore parsing errors
+                         }
+                         return null;
+                    };
+
+                    const extracted = tryExtractMessage(errorMessage);
+                    if (extracted) {
+                         errorMessage = extracted;
+                    }
 
                     res.write(
                          `event: error\ndata: ${JSON.stringify({
-                              message: "Error generating response",
+                              error: errorMessage,
                          })}\n\n`
                     );
                     res.end();

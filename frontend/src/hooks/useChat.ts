@@ -64,8 +64,6 @@ export const useChat = () => {
     const loadConversation = useCallback(async (id: string) => {
 
         console.log('Loading conversation', id);
-        // Avoid re-fetching if we are already on this conversation (e.g. just created it)
-        // But we should fetch if we navigated here from sidebar
         if (id === activeConversationId && messages.length > 0) return;
 
         setIsLoading(true);
@@ -166,6 +164,17 @@ export const useChat = () => {
                                     const lastMsg = newMessages[newMessages.length - 1];
                                     if (lastMsg.sender === 'ai') {
                                         lastMsg.text = aiResponseText;
+                                    }
+                                    return newMessages;
+                                });
+                            }
+
+                            if (data.error) {
+                                setMessages((prev) => {
+                                    const newMessages = [...prev];
+                                    const lastMsg = newMessages[newMessages.length - 1];
+                                    if (lastMsg.sender === 'ai') {
+                                        lastMsg.text = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
                                     }
                                     return newMessages;
                                 });

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import redisClient from './services/redis.service';
+// import redisClient from './services/redis.service';
 import { errorMiddleware } from './middlewares/error.middleware';
 import chatRoute from './routes/chat.route';
 
@@ -16,15 +16,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 // redis connections
-redisClient.connect();
+// redisClient.connect();
 
-redisClient.on('error', (err) => {
-  console.error('Redis connection error:', err);
-});
+// redisClient.on('error', (err) => {
+//   console.error('Redis connection error:', err);
+// });
 
-redisClient.on('connect', () => {
-  console.log('Redis connected');
-});
+// redisClient.on('connect', () => {
+//   console.log('Redis connected');
+// });
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');
