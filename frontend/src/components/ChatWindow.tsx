@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from "react";
-import { Send, Menu, Loader2, Bot } from "lucide-react";
+import { Send, Menu, Bot } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
-import clsx from "clsx";
 
 interface Message {
   id?: string;
