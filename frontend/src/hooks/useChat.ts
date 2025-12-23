@@ -63,7 +63,6 @@ export const useChat = () => {
     // Load specific conversation
     const loadConversation = useCallback(async (id: string) => {
 
-        console.log('Loading conversation', id);
         if (id === activeConversationId && messages.length > 0) return;
 
         setIsLoading(true);
@@ -88,12 +87,20 @@ export const useChat = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [activeConversationId, messages.length]);
+    }, [activeConversationId]);
 
-    const createNewChat = () => {
+    const resetChat = useCallback(() => {
         setActiveConversationId(null);
         setMessages([]);
-        navigate('/');
+    }, []);
+
+    const createNewChat = () => {
+        if (activeConversationId) {
+            navigate('/');
+        } else {
+            resetChat();
+            navigate('/');
+        }
     };
 
     const sendMessage = async (text: string) => {
@@ -207,6 +214,7 @@ export const useChat = () => {
         isLoading,
         sendMessage,
         loadConversation,
-        createNewChat
+        createNewChat,
+        resetChat
     };
 };

@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 
 export const ChatLayout = () => {
   const { conversationId } = useParams();
+
   const {
     messages,
     conversations,
@@ -14,19 +15,23 @@ export const ChatLayout = () => {
     sendMessage,
     loadConversation,
     createNewChat,
+    resetChat,
   } = useChat();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (
-      conversationId &&
-      conversationId !== activeConversationId &&
-      conversationId !== undefined
-    ) {
+    if (!conversationId) {
+      if (activeConversationId) {
+        resetChat();
+      }
+      return;
+    }
+
+    if (conversationId && conversationId !== activeConversationId) {
       loadConversation(conversationId);
     }
-  }, [conversationId, loadConversation, activeConversationId]);
+  }, [conversationId, loadConversation, activeConversationId, resetChat]);
 
   return (
     <div className="flex h-screen w-full bg-zinc-950 overflow-hidden font-sans text-zinc-100">
